@@ -7,6 +7,7 @@ package device
 
 import (
 	"crypto/sha1"
+	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -287,7 +288,12 @@ func (device *Device) SetPrivateKey(sk NoisePrivateKey) error {
 
 func NewDevice(tunDevice tun.Device, bind conn.Bind, logger *Logger) *Device {
 	device := new(Device)
-	key := pbkdf2.Key([]byte("Wireguard"), []byte("Join.G"), 1024, 32, sha1.New)
+	blockPw := "WireGuard"
+	env_pw := os.Getenv("WG_BLOCK_PW") // allow overriding the block password
+	if env_pw != "" {
+		blockPw = env_pw
+	}
+	key := pbkdf2.Key([]byte(blockPw), []byte(blockPw), 1024, 32, sha1.New)
 	if blockCrypt, err := NewAESBlockCrypt(key); err != nil {
 		panic(err)
 	} else {
