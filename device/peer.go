@@ -132,7 +132,9 @@ func (peer *Peer) SendBuffers(buffers [][]byte) error {
 		peer.endpoint.clearSrcOnTx = false
 	}
 	peer.endpoint.Unlock()
-
+	for i := range buffers {
+		peer.device.blockCrypt.Encrypt(buffers[i], buffers[i])
+	}
 	err := peer.device.net.bind.Send(buffers, endpoint)
 	if err == nil {
 		var totalLen uint64

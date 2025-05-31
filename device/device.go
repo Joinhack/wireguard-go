@@ -6,11 +6,13 @@
 package device
 
 import (
+	"crypto/sha1"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"golang.org/x/crypto/pbkdf2"
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/ratelimiter"
 	"golang.zx2c4.com/wireguard/rwcancel"
@@ -85,6 +87,8 @@ type Device struct {
 		device tun.Device
 		mtu    atomic.Int32
 	}
+
+	blockCrypt *AesBlockCrypt
 
 	ipcMutex sync.RWMutex
 	closed   chan struct{}
@@ -283,6 +287,12 @@ func (device *Device) SetPrivateKey(sk NoisePrivateKey) error {
 
 func NewDevice(tunDevice tun.Device, bind conn.Bind, logger *Logger) *Device {
 	device := new(Device)
+	key := pbkdf2.Key([]byte("Wireguard"), []byte("Join.G"), 1024, 32, sha1.New)
+	if blockCrypt, err := NewAESBlockCrypt(key); err != nil {
+		panic(err)
+	} else {
+		device.blockCrypt = blockCrypt
+	}
 	device.state.state.Store(uint32(deviceStateDown))
 	device.closed = make(chan struct{})
 	device.log = logger
