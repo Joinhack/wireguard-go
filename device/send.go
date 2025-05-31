@@ -187,7 +187,7 @@ func (device *Device) SendHandshakeCookie(initiatingElem *QueueHandshakeElement)
 	packet := make([]byte, MessageCookieReplySize)
 	_ = reply.marshal(packet)
 	// TODO: allocation could be avoided
-	device.blockCrypt.Encrypt(packet, packet)
+	device.blockCrypt.Encrypt(packet[:MinMixedBytes], packet[:MinMixedBytes])
 	device.net.bind.Send([][]byte{packet}, initiatingElem.endpoint)
 
 	return nil

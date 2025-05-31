@@ -24,6 +24,7 @@ const (
 	CookieRefreshTime       = time.Second * 120
 	HandshakeInitationRate  = time.Second / 50
 	PaddingMultiple         = 16
+	MinMixedBytes           = 16
 )
 
 const (

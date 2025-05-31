@@ -133,7 +133,11 @@ func (peer *Peer) SendBuffers(buffers [][]byte) error {
 	}
 	peer.endpoint.Unlock()
 	for i := range buffers {
-		peer.device.blockCrypt.Encrypt(buffers[i], buffers[i])
+		min := MinMixedBytes
+		if len(buffers[i]) < min {
+			min = len(buffers[i])
+		}
+		peer.device.blockCrypt.Encrypt(buffers[i][:min], buffers[i][:min])
 	}
 	err := peer.device.net.bind.Send(buffers, endpoint)
 	if err == nil {
